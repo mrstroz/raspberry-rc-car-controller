@@ -20,38 +20,82 @@ document.addEventListener('DOMContentLoaded', () => {
         resetStick();
     });
 
-    document.addEventListener('mousemove', (event) => {
+    stick.addEventListener('touchstart', (event) => {
+        isDragging = true;
+        event.preventDefault();
+    });
+
+    document.addEventListener('touchend', () => {
+        isDragging = false;
+        resetStick();
+    });
+
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('touchmove', handleMove, {passive: false});
+
+    function handleMove(event) {
         if (!isDragging) return;
 
         const rect = controllerArea.getBoundingClientRect();
-        console.log(rect);
-        x = event.clientX - rect.left - centerPoint.x;
-        y = event.clientY - rect.top - centerPoint.y;
+        let clientX, clientY;
+
+        if (event.type.startsWith('touch')) {
+            clientX = event.touches[0].clientX;
+            clientY = event.touches[0].clientY;
+        } else {
+            clientX = event.clientX;
+            clientY = event.clientY;
+        }
+
+        x = clientX - rect.left - centerPoint.x;
+        y = clientY - rect.top - centerPoint.y;
 
         const distance = Math.sqrt(x * x + y * y);
         const angle = Math.atan2(y, x);
 
-        if (distance < controllerRadius - stickRadius) {
+        const maxDistance = controllerRadius - stickRadius;
+
+        if (distance < maxDistance) {
             stick.style.left = `${centerPoint.x + x}px`;
             stick.style.top = `${centerPoint.y + y}px`;
         } else {
-            stick.style.left = `${centerPoint.x + Math.cos(angle) * (controllerRadius - stickRadius)}px`;
-            stick.style.top = `${centerPoint.y + Math.sin(angle) * (controllerRadius - stickRadius)}px`;
+            stick.style.left = `${centerPoint.x + Math.cos(angle) * maxDistance}px`;
+            stick.style.top = `${centerPoint.y + Math.sin(angle) * maxDistance}px`;
         }
 
-        console.log(`X: ${x}, Y: ${y}`);
-        const stickData = {x: x, y: y};
-        socket.emit('send_controller_data', stickData);
-    });
+        let normalizedX = Math.round((x / maxDistance) * 100);
+        let normalizedY = Math.round((y / maxDistance) * 100);
+
+        normalizedX > 100 ? normalizedX = 100 : null;
+        normalizedX < -100 ? normalizedX = -100 : null;
+        normalizedY > 100 ? normalizedY = 100 : null;
+        normalizedY < -100 ? normalizedY = -100 : null;
+
+        let speedLeft = -normalizedY - normalizedX;
+        let speedRight = -normalizedY + normalizedX;
+
+        speedLeft > 100 ? speedLeft = 100 : null;
+        speedLeft < -100 ? speedLeft = -100 : null;
+        speedRight > 100 ? speedRight = 100 : null;
+        speedRight < -100 ? speedRight = -100 : null;
+
+        emit(speedLeft, speedRight);
+    }
 
     function resetStick() {
         stick.style.left = `${centerPoint.x}px`;
         stick.style.top = `${centerPoint.y}px`;
-        x = 0;
-        y = 0;
-        console.log(`X: ${x}, Y: ${y}`);
-        const stickData = {x: x, y: y};
-        socket.emit('send_stick_data', stickData);
+
+        emit(0, 0);
+    }
+
+    function emit(speedLeft, speedRight) {
+        document.getElementById('speedLeft').innerHTML = speedLeft.toString();
+        document.getElementById('speedRight').innerHTML = speedRight.toString();
+
+        console.log(`Left: ${speedLeft}, Right: ${speedRight}`);
+        const stickData = {left: speedLeft, right: speedRight};
+        socket.emit('send_controller_data', stickData);
     }
 
 });

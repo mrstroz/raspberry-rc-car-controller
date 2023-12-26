@@ -2,11 +2,19 @@
 <html>
 <head>
     <title>RC Controller</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+
     <script src="https://cdn.socket.io/4.7.2/socket.io.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </head>
 <body>
+<div id="speedTable">
+    <div id="speedLeft">0</div>
+    <div id="speedRight">0</div>
+</div>
 <div id="controllerArea">
     <div id="stick"></div>
 </div>
