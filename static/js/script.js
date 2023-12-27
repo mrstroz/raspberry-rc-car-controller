@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stick.style.top = `${centerPoint.y}px`;
 
         emit(0, 0);
+        socket.emit('send_reset');
     }
 
     function emit(speedLeft, speedRight) {

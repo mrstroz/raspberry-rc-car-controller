@@ -1,24 +1,21 @@
-import RPi.GPIO as GPIO
-
-class Motor():
-    def __init__(self, ena, input1, input2):
+class Motor:
+    def __init__(self, ena, input1, input2, speed=0):
         self.ena = ena
         self.input1 = input1
         self.input2 = input2
-        GPIO.setup(self.ena, GPIO.OUT)
-        GPIO.setup(self.input1,GPIO.OUT)
-        GPIO.setup(self.input2,GPIO.OUT)
-        self.pwm = GPIO.PWM(self.ena,100)
-        self.pwm.start(0)
+        self.speed = speed
 
-    def forward(self, speed):
-        print('Move Forward: ' + str(speed))
-        GPIO.output(self.input1, GPIO.LOW)
-        GPIO.output(self.input2, GPIO.HIGH)
-        self.pwm.ChangeDutyCycle(speed)
+    def forward(self):
+        print('Move Forward: ' + str(self.speed))
 
-    def backward(self, speed):
-        print('Move Backward: ' + str(speed))
-        GPIO.output(self.input1, GPIO.HIGH)
-        GPIO.output(self.input2, GPIO.LOW)
-        self.pwm.ChangeDutyCycle(speed)
+    def backward(self):
+        print('Move Backward: ' + str(self.speed))
+
+    def set_speed(self, speed):
+        self.speed = speed
+
+    def run(self):
+        if self.speed > 0:
+            self.forward()
+        else:
+            self.backward()
