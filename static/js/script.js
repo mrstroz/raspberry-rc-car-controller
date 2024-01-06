@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
+    socket.emit('send_start');
 
     const stick = document.getElementById('stick');
     const controllerArea = document.getElementById('controllerArea');

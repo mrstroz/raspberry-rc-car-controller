@@ -17,19 +17,24 @@ socketio = SocketIO(app)
 motor_left = GpioMotor(2, 3, 4)
 motor_right = GpioMotor(14, 15, 18)
 
-loop = False
-
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
 
+@socketio.on('send_start')
+def handle_reset():
+    global motor_left, motor_right
+
+    while True:
+        motor_left.run()
+        motor_right.run()
+
+
 @socketio.on('send_controller_data')
 def handle_stick_data(json):
-    global motor_left, motor_right, loop
-
-    loop = False
+    global motor_left, motor_right
 
     speed_left = int(json['left'])
     speed_right = int(json['right'])
@@ -37,18 +42,13 @@ def handle_stick_data(json):
     motor_left.set_speed(speed_left)
     motor_right.set_speed(speed_right)
 
-    loop = True
-
-    while loop:
-        motor_left.run()
-        motor_right.run()
-
 
 @socketio.on('send_reset')
 def handle_reset():
-    global motor_left, motor_right, loop
+    global motor_left, motor_right
 
-    loop = False
+    motor_left.set_speed(0)
+    motor_right.set_speed(0)
 
 
 if __name__ == '__main__':
